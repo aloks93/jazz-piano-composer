@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.venv/
+venv/
+
+# Files the app exports
+*.wav
+*.mid
+*.jazz.json
+
+# Local-only material
+legacy/
+graphify-out/
+.graphifyignore
+.claude/

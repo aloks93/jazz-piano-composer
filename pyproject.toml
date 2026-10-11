@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jazz-piano-composer"
+version = "1.0.0"
+description = "An educational jazz progression generator with a built-in synthesizer."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Lucas Espínola" }]
+dependencies = ["numpy", "pygame"]
+keywords = ["jazz", "harmony", "music theory", "chord progressions", "education", "midi"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Sound/Audio :: MIDI",
+    "Topic :: Education",
+    "Intended Audience :: Education",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.gui-scripts]
+jazz-piano-composer = "jazz_composer.ui.app:main"
+
+[tool.setuptools.packages.find]
+include = ["jazz_composer*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[project.urls]
+Repository = "https://github.com/aloks93/jazz-piano-composer"
