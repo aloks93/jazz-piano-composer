@@ -41,9 +41,38 @@ bass — no MIDI devices, soundfonts or drivers required.
 - **Friendly interface** — one-click examples, a one-sentence explanation of every control,
   light and dark themes, English and Spanish.
 
-## Getting started
+## Download (Windows)
 
-Requires Python 3.10 or newer (with Tkinter, which ships with the standard installers).
+No installation and no Python needed. Get the latest version here:
+
+- **[JazzPianoComposer.exe](https://github.com/aloks93/jazz-piano-composer/releases/latest/download/JazzPianoComposer.exe)**
+  — a single file: download it and double-click.
+- **[JazzPianoComposer-windows.zip](https://github.com/aloks93/jazz-piano-composer/releases/latest/download/JazzPianoComposer-windows.zip)**
+  — a portable folder: unzip it anywhere and run `JazzPianoComposer.exe` inside. Opens faster.
+
+All versions and checksums are on the [releases page](https://github.com/aloks93/jazz-piano-composer/releases).
+
+> [!WARNING]
+> **Windows may warn you about this file.** When you open the program, Windows may show
+> *"Windows protected your PC"*, and some antivirus tools may flag the download.
+> **This does not mean the program contains a virus.**
+>
+> It happens because the program is **not digitally signed**: a code-signing certificate is
+> a paid license that small free projects like this one usually do not have, so Windows
+> cannot identify the publisher and warns by default. Programs packaged with PyInstaller,
+> like this one, are a well-known source of these false alarms.
+>
+> To run it, click **More info → Run anyway**.
+>
+> You do not have to take this on trust: the full source code is in this repository, the
+> downloads are built by GitHub Actions directly from that source (the build log is public),
+> and each release includes SHA-256 checksums. If you would rather not run a downloaded
+> executable at all, run the app from source as described below.
+
+## Run from source
+
+Works on Windows, macOS and Linux. Requires Python 3.10 or newer (with Tkinter, which ships
+with the standard installers).
 
 ```bash
 git clone https://github.com/aloks93/jazz-piano-composer.git
@@ -94,6 +123,19 @@ Each layer only depends on the ones above it.
 | `project.py` | Save and load projects as JSON |
 | `audio.py` | Playback through pygame |
 | `ui/` | Tkinter application: themes, translations, presets, help |
+
+## Building the Windows downloads
+
+Pushing a version tag (`git tag v1.2.3 && git push origin v1.2.3`) runs the
+[release workflow](.github/workflows/release.yml): it runs the tests, builds the executable
+and the portable folder with PyInstaller, self-tests both, and publishes them as a release.
+
+To build locally:
+
+```bash
+pip install pyinstaller
+pyinstaller main.py --name JazzPianoComposer --windowed --onefile
+```
 
 ## Tests
 

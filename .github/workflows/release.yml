@@ -1,0 +1,63 @@
+name: Release
+
+# Pushing a tag like v1.2.3 builds the Windows downloads from that exact commit
+# and publishes them as a GitHub release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest pyinstaller
+
+      - name: Run tests
+        run: python -m pytest
+
+      - name: Build single-file executable
+        run: pyinstaller main.py --name JazzPianoComposer --windowed --onefile --noconfirm --exclude-module pytest --distpath dist/single
+
+      - name: Build portable folder
+        run: pyinstaller main.py --name JazzPianoComposer --windowed --noconfirm --exclude-module pytest --distpath dist/portable
+
+      - name: Self-test both builds
+        shell: pwsh
+        env:
+          JAZZ_SELF_TEST_LOG: ${{ runner.temp }}\self-test.log
+        run: |
+          foreach ($exe in "dist/single/JazzPianoComposer.exe", "dist/portable/JazzPianoComposer/JazzPianoComposer.exe") {
+            $process = Start-Process $exe -ArgumentList "--self-test" -Wait -PassThru
+            if ($process.ExitCode -ne 0) {
+              if (Test-Path $env:JAZZ_SELF_TEST_LOG) { Get-Content $env:JAZZ_SELF_TEST_LOG }
+              throw "$exe failed its self-test (exit code $($process.ExitCode))"
+            }
+            Write-Host "$exe passed its self-test"
+          }
+
+      - name: Package downloads
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory release | Out-Null
+          Copy-Item dist/single/JazzPianoComposer.exe release/
+          Copy-Item README.md, LICENSE dist/portable/JazzPianoComposer/
+          Compress-Archive -Path dist/portable/JazzPianoComposer -DestinationPath release/JazzPianoComposer-windows.zip
+          Get-ChildItem release | ForEach-Object {
+            "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)"
+          } | Set-Content release/SHA256SUMS.txt
+          Get-Content release/SHA256SUMS.txt
+
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create $env:GITHUB_REF_NAME (Get-ChildItem release).FullName --title "Jazz Piano Composer $env:GITHUB_REF_NAME" --notes-file .github/release-notes.md --verify-tag

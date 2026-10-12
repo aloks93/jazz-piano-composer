@@ -821,7 +821,42 @@ class App:
         self.root.destroy()
 
 
+def self_test() -> int:
+    """Check that a packaged build is complete: engine, synthesis, MIDI, pygame and the UI all load.
+
+    Run with `--self-test`; the exit code is 0 on success, and on failure the traceback is
+    written to the file named by JAZZ_SELF_TEST_LOG. Setting JAZZ_SELF_TEST_AUDIO=1 also
+    plays a short clip, which needs an audio device.
+    """
+    import os
+    import traceback
+    try:
+        import pygame.mixer  # noqa: F401  (must be bundled)
+        from ..midi import midi_bytes
+
+        root = tk.Tk()
+        app = App(root)
+        app.apply_preset(next(iter(PRESETS)))
+        root.update()
+        perf = build_performance(app.composition.playback[:2], app._density(), FEELS[2], 240)
+        chunks = list(iter_performance_pcm(perf, 240))
+        assert any(chunks) and midi_bytes(perf, 240).startswith(b"MThd")
+        if os.environ.get("JAZZ_SELF_TEST_AUDIO") == "1":
+            app._audio.play_pcm(iter(chunks), threading.Event())
+        app.on_close()
+        return 0
+    except Exception:
+        # windowed builds have no console, so the reason goes to a log file
+        log = os.environ.get("JAZZ_SELF_TEST_LOG", "jazz_composer_self_test.log")
+        with open(log, "w", encoding="utf-8") as f:
+            traceback.print_exc(file=f)
+        return 1
+
+
 def main():
+    import sys
+    if "--self-test" in sys.argv:
+        sys.exit(self_test())
     enable_dpi_awareness()
     root = tk.Tk()
     App(root)
